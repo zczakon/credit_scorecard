@@ -1,5 +1,6 @@
 # import pandas as pd
 import numpy as np
+from scipy.stats import norm
 
 
 class Utils:
@@ -97,8 +98,23 @@ class CalibrationMetrics(Utils):
         pd_observed = np.sum(self.data['DEFAULT_FLAG']) / len(self.data['DEFAULT_FLAG'])
         return 1 - np.divide(self.brier_score(groups), pd_observed * (1 - pd_observed))
 
-    def binomial_calibration_test(self):
-        pass
+    def normal_approximation_bounds(self, group, q):
+        borrowers_in_group = np.shape(group)[0]
+        # defaulted_in_group = np.sum(group[:, 1])
+        g_avg = self.avg_group_proba(group)
+        upper_bound = norm.pps((q + 1) / 2) * np.sqrt(np.divide((g_avg * (1 - g_avg)), borrowers_in_group))
+        lower_bound = g_avg - upper_bound
+        return lower_bound, upper_bound
 
-    def normal_approximation(self):
-        pass
+    def normal_approximation_test(self, group):
+        # 3=red, 2=yellow, 1=green
+        lower_bound_99, upper_bound_99 = self.normal_approximation_bounds(group, 0.99)
+        lower_bound_95, upper_bound_95 = self.normal_approximation_bounds(group, 0.95)
+        g_avg = self.avg_group_proba(group)
+        if g_avg >= upper_bound_99:
+            rating = 'Green'
+        elif g_avg <= upper_bound_95:
+            rating = 'Red'
+        else:
+            rating = 'Yellow'
+        return rating
