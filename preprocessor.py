@@ -1,7 +1,3 @@
-import pandas as pd
-import numpy as np
-import scorecardpy as sc
-
 
 class Preprocessor:
     def __init__(self, data):

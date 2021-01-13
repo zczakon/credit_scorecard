@@ -2,9 +2,9 @@
 import numpy as np
 from scipy.stats import norm
 
+#division to groups and all the test should be performed on... test data
 
 class Utils:
-
     def __init__(self, data):
         self.data = data
 
@@ -14,14 +14,13 @@ class Utils:
         :param n: desired number of groups, defaults to 10
         :return: list od 2d arrays of PDs and default flagst
         """
-        observations = self.data['DEFAULT_FLAG']
-        observations = observations.to_numpy()
-        num_of_obs = len(observations)
-        obs_and_predictions = np.concatenate(observations, predicted_probability, axis=1)
+        observations = self.data[:, np.shape(data)[1] - 1]
+        num_of_obs = np.shape(observations)[0]
 
+        obs_and_predictions = np.column_stack((observations, predicted_probability))
         group_size = num_of_obs // n
-        groups = []
 
+        groups = []
         for i in range(n):
             if i <= n - 2:
                 groups.append(obs_and_predictions[i * group_size:(i + 1) * group_size, :])
@@ -42,17 +41,19 @@ class Utils:
         """
         :param predicted_probability: 1d array of predicted default probabilities (1=certain default)
         :param n: number of groups
-        :return: n groups of pairs [PD, realized default flag] sorted by avg groups PD
+        :return: n groups of pairs in an array [PD, realized default flag] sorted by avg groups PD in descending order
         """
         groups = self.divide_to_groups(predicted_probability, n)
         avg_probs = [self.avg_group_proba(group) for group in groups]
 
-        # rows in array are pairs of group,avg_prob, I sort them by avg probability
-        groups = np.concatenate(groups, avg_probs, axis=1)
-        sorted_groups = sorted(groups, key=lambda x: x[1], reverse=False)
-        sorted_groups = sorted_groups[:, 0]
+        # rows in array are pairs of group, avg_prob, I sort them by avg probability
+        groups = np.column_stack((groups, avg_probs))
 
-        return sorted_groups
+        sorted_groups = groups[groups[:, 1].argsort()]
+        sorted_groups = np.flip(sorted_groups, axis=0)
+        # print(sorted_groups[:,0])
+
+        return sorted_groups[:, 0]
 
 
 class CalibrationMetrics(Utils):
