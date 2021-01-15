@@ -1,3 +1,7 @@
+import pandas as pd
+import numpy as np
+import scorecardpy as sc
+
 
 class Preprocessor:
     def __init__(self, data):
@@ -59,7 +63,6 @@ class Preprocessor:
 
     @staticmethod
     def provide_x_y(train, test):
-        # TODO it might change train test permanently to numpy?
         train = train.to_numpy()
         test = test.to_numpy()
 

@@ -12,25 +12,27 @@ preprocessor = Preprocessor(df)
 preprocessor.adjust_excel()
 preprocessor.convert_numbers_to_numeric()
 df.drop(columns=['ASSESSMENT_YEAR', 'GROUP_FLAG', 'TURNOVER', 'INDUSTRY'], axis=1, inplace=True)
-
 print(df.columns)
+y_test = df['DEFAULT_FLAG'].to_numpy() #here test data is all data
 
+
+# print(df.columns)
 
 class ImpliedModel:
     def __init__(self, data):
-        self.data = data.to_numpy()
+        self.data = data
         self.x = data[:, :6]
         self.y = data[:, 6]
 
     weights = 0.01 * np.array([20, 10, 10, 15, 25, 20])
 
     def score(self):
-        return np.sum(np.multiply(self.weights, self.x), axis=1) / len(self.weights)
+        return (np.sum(np.multiply(self.weights, self.x), axis=1)) / len(self.weights)
 
     def pd(self):
         exp = np.exp(-0.1 * self.score())
         denominator = 1 + exp
-        return 1 / denominator
+        return 1 - (1 / denominator)  # probability of reverse of non-default
 
     # simple prediction, but could be done using sigmoid etc.
     def predict(self):
@@ -48,7 +50,7 @@ class ImpliedModel:
         score = 0
         prediction = self.predict()
         for i in range(len(prediction)):
-            if prediction[i] != y_test[i]:  # in this model target variable is "NOT DEFAULT"
+            if prediction[i] == y_test[i]:
                 score += 1
         return (self.true_positive(y_test) + self.true_negative(y_test)) / len(prediction)
 
@@ -68,7 +70,7 @@ class ImpliedModel:
         true_pos = 0
         prediction = self.predict()
         for i in range(len(prediction)):
-            if y_test == 1 & prediction[i] != y_test[i]:
+            if y_test[i] == 1 & prediction[i] == y_test[i]:
                 true_pos += 1
         return true_pos
 
@@ -76,9 +78,33 @@ class ImpliedModel:
         true_neg = 0
         prediction = self.predict()
         for i in range(len(prediction)):
-            if y_test == 0 & prediction[i] != y_test[i]:
+            if y_test[i] == 0 & prediction[i] == y_test[i]:
                 true_neg += 1
         return true_neg
 
     def f1_model_score(self, y_test):
         return 2 * np.divide(self.precision(y_test) * self.recall(y_test), self.precision(y_test) + self.recall(y_test))
+
+    def model_score(self, y):
+        #this is same as accuracy but works
+        score = 0
+        prediction=self.predict()
+        for i in range(len(prediction)):
+            if prediction[i] == y[i]:
+                score += 1
+        return score/len(prediction)
+
+
+implied_model = ImpliedModel(df.to_numpy())
+score = implied_model.model_score(y_test)
+precision = implied_model.precision(y_test)
+recall=implied_model.recall(y_test)
+
+predict_proba = implied_model.pd()
+prediction = implied_model.predict()
+number_of_predicted_defaults = np.sum(prediction)
+
+print('recall:',recall)
+print('precision:',precision)
+
+print('Score:', score)
