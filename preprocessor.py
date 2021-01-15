@@ -8,7 +8,6 @@ class Preprocessor:
         self.df = data
 
     def adjust_excel(self):
-        # adjusting df
         self.df.drop('Unnamed: 0', axis=1, inplace=True)
         self.df.drop('Unnamed: 1', axis=1, inplace=True)
         self.rename_columns()
@@ -33,7 +32,6 @@ class Preprocessor:
         for column in self.df.columns:
             if column != 'INDUSTRY':
                 to_convert.append(column)
-        # print(to_convert)
         self.df[to_convert] = self.df[to_convert].apply(pd.to_numeric, errors='coerce')
 
     @staticmethod

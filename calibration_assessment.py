@@ -1,9 +1,6 @@
-# import pandas as pd
 import numpy as np
 from scipy.stats import norm
 
-
-# division to groups and all the test should be performed on... test data
 
 class Utils:
     def __init__(self, data):
@@ -35,7 +32,7 @@ class Utils:
         :param group: 2d array of PDs and default flags
         :return: average PD in a group
         """
-        pds = group[:, 1] #sum of probabilities of defaults
+        pds = group[:, 1]  # sum of probabilities of defaults
         return np.sum(pds) / len(pds)
 
     def sorted_groups(self, predicted_probability, n=10):
@@ -47,12 +44,10 @@ class Utils:
         groups = self.divide_to_groups(predicted_probability, n)
         avg_probs = [self.avg_group_proba(group) for group in groups]
 
-        # rows in array are pairs of group, avg_prob, I sort them by avg probability
         groups = np.column_stack((groups, avg_probs))
 
         sorted_groups = groups[groups[:, 1].argsort()]
         sorted_groups = np.flip(sorted_groups, axis=0)
-        # print(sorted_groups[:,0])
 
         return sorted_groups[:, 0]
 
@@ -90,18 +85,9 @@ class CalibrationMetrics(Utils):
             predicted_default_rate = self.avg_group_proba(group)
             summed = realized_default_rate * (1 - realized_default_rate) + (
                     predicted_default_rate - realized_default_rate) ** 2
-            # print('summed type:',type(summed))
-            # print('borrowers_in_group type:',type(borrowers_in_group))
-            # print(borrowers_in_group * summed)
 
             bs_group.append(borrowers_in_group * summed)
-
-        # print(bs_group)
-        # print(np.sum(bs_group))
-
         bs = (1 / total_borrowers) * np.sum(bs_group)
-
-        # print(bs)
         return bs
 
     def brier_skill_score(self, groups, total_defaults, num_of_obs=1161):
@@ -110,14 +96,12 @@ class CalibrationMetrics(Utils):
 
     def normal_approximation_bounds(self, group, q):
         borrowers_in_group = np.shape(group)[0]
-        # defaulted_in_group = np.sum(group[:, 1])
         g_avg = self.avg_group_proba(group)
-        upper_bound = norm.pps((q + 1) / 2) * np.sqrt(np.divide((g_avg * (1 - g_avg)), borrowers_in_group))
+        upper_bound = norm.ppf((q + 1) / 2) * np.sqrt(np.divide((g_avg * (1 - g_avg)), borrowers_in_group))
         lower_bound = g_avg - upper_bound
         return lower_bound, upper_bound
 
     def normal_approximation_test(self, group):
-        # 3=red, 2=yellow, 1=green
         lower_bound_99, upper_bound_99 = self.normal_approximation_bounds(group, 0.99)
         lower_bound_95, upper_bound_95 = self.normal_approximation_bounds(group, 0.95)
         g_avg = self.avg_group_proba(group)
@@ -129,8 +113,9 @@ class CalibrationMetrics(Utils):
             rating = 'Yellow'
         return rating
 
-#from logistic_regression import predict_proba, x_test, y_test, total_test_defaults
-from probit_regression import predict_proba, x_test, y_test, total_test_defaults
+
+from logistic_regression import predict_proba, x_test, y_test, total_test_defaults
+#from probit_regression import predict_proba, x_test, y_test, total_test_defaults
 
 y_test = np.reshape(y_test, (1161, 1))
 data = np.concatenate((x_test, y_test), axis=1)
@@ -156,3 +141,6 @@ from scipy.stats import chisquare
 p = 1 - chisquare(hs_statistics, 8)[1]
 p = "{:.50f}".format(float(p))
 print('p value for H-S:', p)
+
+traffic_lights = [calibration_metrics.normal_approximation_test(group) for group in groups]
+print('traffic lights:', traffic_lights)

@@ -86,7 +86,6 @@ class ImpliedModel:
         return 2 * np.divide(self.precision(y_test) * self.recall(y_test), self.precision(y_test) + self.recall(y_test))
 
     def model_score(self, y):
-        #this is same as accuracy but works
         score = 0
         prediction=self.predict()
         for i in range(len(prediction)):
@@ -106,5 +105,7 @@ number_of_predicted_defaults = np.sum(prediction)
 
 print('recall:',recall)
 print('precision:',precision)
+print('F1 score:',implied_model.f1_model_score(y_test))
+print('accuracy:',implied_model.accuracy(y_test))
 
 print('Score:', score)
