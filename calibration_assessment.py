@@ -3,12 +3,12 @@ from scipy.stats import chisquare
 
 
 def generate_assessment(predict_proba, x_test, y_test, total_test_defaults):
-    y_test = np.reshape(y_test, (1161, 1))
+    y_test = np.reshape(y_test, (np.shape(y_test)[0], 1))
     data = np.concatenate((x_test, y_test), axis=1)
     utils = Utils(data)
     groups = utils.sorted_groups(predict_proba, n=10)
     print('lengths', [len(group) for group in groups])
-    defaults_in_groups = [np.sum(group[i][0] for i in range(len(group))) for group in groups]
+    defaults_in_groups = [sum(group[i][0] for i in range(len(group))) for group in groups]
     print('defaults in groups:', defaults_in_groups)
     print('PDs in groups', [utils.avg_group_proba(group) for group in groups])
 
@@ -31,7 +31,14 @@ def generate_assessment(predict_proba, x_test, y_test, total_test_defaults):
     pass
 
 
-from logistic_regression import predict_proba, x_test, y_test, total_test_defaults
-# from probit_regression import predict_proba, x_test, y_test, total_test_defaults
+from logistic_regression import predict_proba, x_test, y_test, total_test_defaults, score
 
+print('############## LOGISTIC ##############')
 generate_assessment(predict_proba, x_test, y_test, total_test_defaults)
+print('model score:', score)
+
+from probit_regression import predict_proba, x_test, y_test, total_test_defaults, score
+
+print('############## PROBIT ##############')
+generate_assessment(predict_proba, x_test, y_test, total_test_defaults)
+print('model score:', score)

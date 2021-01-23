@@ -35,8 +35,5 @@ def model_score(prediction, target):
 binary_prediction = predict(predict_proba)
 score = model_score(binary_prediction, y_test)
 
-total_test_defaults=np.sum(binary_prediction)
-
-print('Predicted number of defaults', np.sum(binary_prediction))
-print('Score:', score)
+total_test_defaults = np.sum(binary_prediction)
 

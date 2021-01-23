@@ -7,18 +7,45 @@ class Preprocessor:
     def __init__(self, data):
         self.df = data
 
+    def remove_duplicates(self):
+        self.df.drop_duplicates(subset=['Unnamed: 1', 'Unnamed: 2'], keep='first', inplace=True)
+        pass
+
     def adjust_excel(self):
         self.df.drop('Unnamed: 0', axis=1, inplace=True)
         self.df.drop('Unnamed: 1', axis=1, inplace=True)
+        self.df.drop('Unnamed: 2', axis=1, inplace=True)
+        self.df.drop('Unnamed: 7', axis=1, inplace=True)
+        self.df.drop('Unnamed: 8', axis=1, inplace=True)
         self.rename_columns()
         self.df.drop(self.df.tail(3).index, inplace=True)
         return self.df
 
+    def adjust_excel_custom(self):
+        self.df.drop('Unnamed: 0', axis=1, inplace=True)
+        self.df.drop('Unnamed: 1', axis=1, inplace=True)
+        self.df.drop('Unnamed: 2', axis=1, inplace=True)
+        self.rename_columns_custom()
+        self.df.drop(self.df.tail(3).index, inplace=True)
+        return self.df
+
+    def rename_columns_custom(self):
+        keys = ['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9',
+                'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12']
+        values = ['PRODUCT_DEMAND', 'OWNERS_MANAGEMENT', 'ACCESS_CREDIT', 'PROFITABILITY', 'SHORT_TERM_LIQUIDITY',
+                  'MEDIUM_TERM_LIQUIDITY', 'GROUP_FLAG', 'TURNOVER', 'INDUSTRY', 'DEFAULT_FLAG']
+        d = {}
+        for i in range(len(keys)):
+            d[keys[i]] = values[i]
+        self.df.rename(columns=d, inplace=True)
+        self.df.drop(self.df.index[0], inplace=True)
+        pass
+
     def rename_columns(self):
-        keys = ['Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7',
-                'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12']
-        values = ['ASSESSMENT_YEAR', 'PRODUCT_DEMAND', 'OWNERS_MANAGEMENT', 'ACCESS_CREDIT', 'PROFITABILITY',
-                  'SHORT_TERM_LIQUIDITY', 'MEDIUM_TERM_LIQUIDITY', 'GROUP_FLAG', 'TURNOVER', 'INDUSTRY', 'DEFAULT_FLAG']
+        keys = ['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11',
+                'Unnamed: 12']
+        values = ['PRODUCT_DEMAND', 'OWNERS_MANAGEMENT', 'ACCESS_CREDIT', 'PROFITABILITY', 'GROUP_FLAG',
+                  'TURNOVER', 'INDUSTRY', 'DEFAULT_FLAG']
         d = {}
         for i in range(len(keys)):
             d[keys[i]] = values[i]
@@ -37,8 +64,7 @@ class Preprocessor:
     @staticmethod
     def encode_categorical(train_or_test):
         return sc.one_hot(train_or_test, cols_skip=['TURNOVER', 'PRODUCT_DEMAND', 'ACCESS_CREDIT', 'OWNERS_MANAGEMENT',
-                                                    'SHORT_TERM_LIQUIDITY', 'MEDIUM_TERM_LIQUIDITY', 'PROFITABILITY',
-                                                    'ASSESSMENT_YEAR'], cols_encode='INDUSTRY')
+                                                    'PROFITABILITY'], cols_encode='INDUSTRY')
 
     def split(self):
         train, test = sc.split_df(self.df, y='DEFAULT_FLAG', ratio=0.8, seed=186).values()
@@ -46,13 +72,12 @@ class Preprocessor:
 
     def woe_transform(self, train, test):
         # includes var filtering and one-hot encoding of 'INDUSTRY' column in all data
-        train = sc.var_filter(train, 'DEFAULT_FLAG', var_kp='INDUSTRY')
+        train = sc.var_filter(train, 'DEFAULT_FLAG', var_kp='INDUSTRY', missing_limit=1.0)
         self.encode_categorical(train)
         bins = sc.woebin(train, 'DEFAULT_FLAG')
         train_woe = sc.woebin_ply(train, bins)
-        train_columns = ['ACCESS_CREDIT', 'ASSESSMENT_YEAR', 'MEDIUM_TERM_LIQUIDITY', 'OWNERS_MANAGEMENT',
-                         'PRODUCT_DEMAND',
-                         'PROFITABILITY', 'SHORT_TERM_LIQUIDITY', 'TURNOVER', 'DEFAULT_FLAG', 'INDUSTRY']
+        train_columns = ['ACCESS_CREDIT', 'OWNERS_MANAGEMENT',
+                         'PRODUCT_DEMAND', 'PROFITABILITY', 'TURNOVER', 'DEFAULT_FLAG', 'INDUSTRY']
         test_selected = test[train_columns]
         self.encode_categorical(test_selected)
         test_woe = sc.woebin_ply(test_selected, bins)
@@ -74,10 +99,10 @@ class Preprocessor:
         return x_train, y_train, x_test, y_test
 
     def combine(self):
+        self.remove_duplicates()
         self.adjust_excel()
         self.convert_numbers_to_numeric()
         train, test = self.split()
         train_woe, test_woe = self.woe_transform(train, test)
         x_train, y_train, x_test, y_test = self.provide_x_y(train_woe, test_woe)
-
         return x_train, y_train, x_test, y_test
