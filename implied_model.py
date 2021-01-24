@@ -10,7 +10,7 @@ df = pd.read_excel("Project 2 - Data.xls")
 # custom preprocessing
 preprocessor = Preprocessor(df)
 preprocessor.remove_duplicates()
-preprocessor.adjust_excel_custom()
+preprocessor.adjust_excel_no_iv()
 preprocessor.convert_numbers_to_numeric()
 df.drop(columns=['GROUP_FLAG', 'TURNOVER', 'INDUSTRY'], axis=1, inplace=True)
 print(df.columns)

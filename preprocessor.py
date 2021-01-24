@@ -21,19 +21,11 @@ class Preprocessor:
         self.df.drop(self.df.tail(3).index, inplace=True)
         return self.df
 
-    def adjust_excel_custom(self):
-        self.df.drop('Unnamed: 0', axis=1, inplace=True)
-        self.df.drop('Unnamed: 1', axis=1, inplace=True)
-        self.df.drop('Unnamed: 2', axis=1, inplace=True)
-        self.rename_columns_custom()
-        self.df.drop(self.df.tail(3).index, inplace=True)
-        return self.df
-
-    def rename_columns_custom(self):
-        keys = ['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9',
-                'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12']
-        values = ['PRODUCT_DEMAND', 'OWNERS_MANAGEMENT', 'ACCESS_CREDIT', 'PROFITABILITY', 'SHORT_TERM_LIQUIDITY',
-                  'MEDIUM_TERM_LIQUIDITY', 'GROUP_FLAG', 'TURNOVER', 'INDUSTRY', 'DEFAULT_FLAG']
+    def rename_columns(self):
+        keys = ['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11',
+                'Unnamed: 12']
+        values = ['PRODUCT_DEMAND', 'OWNERS_MANAGEMENT', 'ACCESS_CREDIT', 'PROFITABILITY', 'GROUP_FLAG',
+                  'TURNOVER', 'INDUSTRY', 'DEFAULT_FLAG']
         d = {}
         for i in range(len(keys)):
             d[keys[i]] = values[i]
@@ -41,11 +33,19 @@ class Preprocessor:
         self.df.drop(self.df.index[0], inplace=True)
         pass
 
-    def rename_columns(self):
-        keys = ['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11',
-                'Unnamed: 12']
-        values = ['PRODUCT_DEMAND', 'OWNERS_MANAGEMENT', 'ACCESS_CREDIT', 'PROFITABILITY', 'GROUP_FLAG',
-                  'TURNOVER', 'INDUSTRY', 'DEFAULT_FLAG']
+    def adjust_excel_no_iv(self):
+        self.df.drop('Unnamed: 0', axis=1, inplace=True)
+        self.df.drop('Unnamed: 1', axis=1, inplace=True)
+        self.df.drop('Unnamed: 2', axis=1, inplace=True)
+        self.rename_columns_no_iv()
+        self.df.drop(self.df.tail(3).index, inplace=True)
+        return self.df
+
+    def rename_columns_no_iv(self):
+        keys = ['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9',
+                'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12']
+        values = ['PRODUCT_DEMAND', 'OWNERS_MANAGEMENT', 'ACCESS_CREDIT', 'PROFITABILITY', 'SHORT_TERM_LIQUIDITY',
+                  'MEDIUM_TERM_LIQUIDITY', 'GROUP_FLAG', 'TURNOVER', 'INDUSTRY', 'DEFAULT_FLAG']
         d = {}
         for i in range(len(keys)):
             d[keys[i]] = values[i]
@@ -78,9 +78,11 @@ class Preprocessor:
         train_woe = sc.woebin_ply(train, bins)
         train_columns = ['ACCESS_CREDIT', 'OWNERS_MANAGEMENT',
                          'PRODUCT_DEMAND', 'PROFITABILITY', 'TURNOVER', 'DEFAULT_FLAG', 'INDUSTRY']
+
         test_selected = test[train_columns]
         self.encode_categorical(test_selected)
         test_woe = sc.woebin_ply(test_selected, bins)
+        print(test_woe)
 
         return train_woe, test_woe
 
