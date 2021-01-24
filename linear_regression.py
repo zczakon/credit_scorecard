@@ -12,7 +12,7 @@ preprocessor = Preprocessor(df)
 # x_train, y_train, x_test, y_test = preprocessor.combine() # for woe
 
 preprocessor.remove_duplicates()
-preprocessor.adjust_excel() # similar iv removed
+preprocessor.adjust_excel()  # similar iv removed
 preprocessor.convert_numbers_to_numeric()
 train, test = preprocessor.split()
 train = preprocessor.encode_categorical(train)
@@ -31,7 +31,9 @@ regr = LinearRegression(normalize=True)
 regr.fit(x_train, y_train)
 prediction = regr.predict(x_test)
 score = regr.score(x_test, y_test)
-print(prediction)
+
+print(plt.plot(prediction))
+
 print('Score:', score)
 
 residuals = y_test - prediction
