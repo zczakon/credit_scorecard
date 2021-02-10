@@ -16,6 +16,11 @@ class Utils:
         num_of_obs = np.shape(observations)[0]
 
         obs_and_predictions = np.column_stack((observations, predicted_probability))
+        obs_and_predictions = obs_and_predictions[obs_and_predictions[:, 1].argsort()]
+        obs_and_predictions = np.flipud(obs_and_predictions)
+
+        print("np.shape(obs_and_predictions)", np.shape(obs_and_predictions))
+        print('obs_and_predictions',obs_and_predictions)
         group_size = num_of_obs // n
 
         groups = []
@@ -39,17 +44,14 @@ class Utils:
         """
         :param predicted_probability: 1d array of predicted default probabilities (1=certain default)
         :param n: number of groups
-        :return: n groups of pairs in an array [realized default flag, PD](<-somehow in this order) sorted by avg groups PD in descending order
+        :return: n groups of pairs in an array [realized default flag, PD](<-somehow in this order) sorted by low to high avg groups PD
         """
         groups = self.divide_to_groups(predicted_probability, n)
         avg_probs = [self.avg_group_proba(group) for group in groups]
 
         groups = np.column_stack((groups, avg_probs))
 
-        sorted_groups = groups[groups[:, 1].argsort()]
-        sorted_groups = np.flip(sorted_groups, axis=0)
-
-        return sorted_groups[:, 0]
+        return np.flipud(groups)[:, 0]
 
 
 class CalibrationMetrics(Utils):
@@ -112,4 +114,3 @@ class CalibrationMetrics(Utils):
         else:
             rating = 'Yellow'
         return rating
-
