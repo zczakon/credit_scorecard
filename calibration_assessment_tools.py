@@ -44,11 +44,10 @@ class Utils:
         """
         :param predicted_probability: 1d array of predicted default probabilities (1=certain default)
         :param n: number of groups
-        :return: n groups of pairs in an array [realized default flag, PD](<-somehow in this order) sorted by low to high avg groups PD
+        :return: n groups of pairs in an array [realized default flag, PD](<-somehow in this order) with low to high avg groups PD (as records)
         """
         groups = self.divide_to_groups(predicted_probability, n)
         avg_probs = [self.avg_group_proba(group) for group in groups]
-
         groups = np.column_stack((groups, avg_probs))
 
         return np.flipud(groups)[:, 0]
